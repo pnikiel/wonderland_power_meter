@@ -71,5 +71,8 @@ tlast = timestamp_of_pulse(b)
 while True:
     time.sleep(10)
     if current_power != None:
-        print(f'Publishing power as {current_power} ')
-        cl.publish('computing/nodes/{0}/power'.format(node), current_power)
+        if current_power < 2000:
+            print(f'Publishing power as {current_power} ')
+            cl.publish('computing/nodes/{0}/power'.format(node), current_power)
+        else:
+            print(f'Filtered out bizarre reading of {current_power}, not published')
