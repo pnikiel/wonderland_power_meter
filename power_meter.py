@@ -34,7 +34,7 @@ def pulse_cbk():
     td = (now - tlast).total_seconds()
     tlast = now
     print(f'Pulse Received, current len is {td} s')
-    current_power = 3600 / td
+    current_power = int(3600 / td)
     print(f'Current power is {current_power} W')
 
 node = platform.node()
