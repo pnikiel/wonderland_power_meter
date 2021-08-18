@@ -71,7 +71,7 @@ tlast = timestamp_of_pulse(b)
 while True:
     time.sleep(10)
     if current_power != None:
-        if current_power < 2600:
+        if current_power < 3600:
             print(f'Publishing power as {current_power} ')
             cl.publish('computing/nodes/{0}/power'.format(node), current_power)
         else:
