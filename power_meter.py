@@ -18,6 +18,7 @@ def timestamp_of_pulse(gpio):
 first_pulse = True
 tlast = None
 current_power = None
+kwh_factor = 1000 # this is the prevalent case, and will be updated anyway later
 
 def pulse_cbk():
 
@@ -36,7 +37,7 @@ def pulse_cbk():
     td = (now - tlast).total_seconds()
     tlast = now
     print(f'Pulse Received, current len is {td} s')
-    current_power = int(3600 / td)
+    current_power = int(3600*1000 / (kwh_factor * td))
     print(f'Current power is {current_power} W')
 
 node = platform.node()
@@ -83,6 +84,8 @@ def main():
 
     cl.loop_start()
 
+    global kwh_factor
+    kwh_factor = hw_desc['kwh_factor']
     b = Button(hw_desc['pin'])
     b.when_pressed = pulse_cbk
 
