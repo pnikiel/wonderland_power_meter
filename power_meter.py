@@ -7,6 +7,7 @@ import sys
 import platform
 import paho.mqtt.client as paho
 import argparse
+import json
 
 def timestamp_of_pulse(gpio):
     gpio.wait_for_active()
@@ -54,9 +55,18 @@ def main():
 
     args = parser.parse_args()
 
+    input_name = args.input_name
 
+    hw_desc_f = open(f'/wonderland-main/hw_desc/{node}/power_meter.json')
+    hw_desc_j = json.load(hw_desc_f)
 
-    client_name = 'client-{0}-{1}'.format(node, sys.argv[0])
+    if not input_name in hw_desc_j:
+        print(f'{input_nane} seems missing in da config')
+        return
+   
+    hw_desc = hw_desc_j[input_name]
+
+    client_name = f'client-{node}-power_meter-{input_name}'
     print('Will connect as: {0}'.format(client_name))
 
     cl = paho.Client(client_name)
@@ -73,9 +83,10 @@ def main():
 
     cl.loop_start()
 
-    b = Button(6)
+    b = Button(hw_desc['pin'])
     b.when_pressed = pulse_cbk
 
+    topic = f"computing/nodes/{node}/power_{input_name}"
 
     print('Waiting...')
     tlast = timestamp_of_pulse(b)
@@ -84,7 +95,7 @@ def main():
         if current_power != None:
             if current_power < 3600:
                 print(f'Publishing power as {current_power} ')
-                cl.publish('computing/nodes/{0}/power'.format(node), current_power)
+                cl.publish(topic, current_power)
             else:
                 print(f'Filtered out bizarre reading of {current_power}, not published')
 
