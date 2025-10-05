@@ -50,6 +50,9 @@ def on_disconnect(client, userdata, rc):
 
 def main():
 
+
+    global tlast
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--input_name', required=True)
 
@@ -95,12 +98,21 @@ def main():
     tlast = timestamp_of_pulse(b)
     while True:
         time.sleep(10)
-        if current_power != None:
-            if current_power < 3600:
-                print(f'Publishing power as {current_power} ')
-                cl.publish(topic, current_power)
+        if current_power != None:  # not the first time run
+            # if there was no pulse for long time, assume power of zero.
+
+            now = datetime.now()
+            td = (now - tlast).total_seconds()
+            timeup_5W = 1000*3600 / (kwh_factor * 5) # max pulse wait for 5W limit
+            if td > timeup_5W:
+                # just assume below 5W limit publish zero
+                cl.publish(topic, 0)
             else:
-                print(f'Filtered out bizarre reading of {current_power}, not published')
+                if current_power < 3600:
+                    print(f'Publishing power as {current_power} ')
+                    cl.publish(topic, current_power)
+                else:
+                    print(f'Filtered out bizarre reading of {current_power}, not published')
 
 
 if __name__ == "__main__":
